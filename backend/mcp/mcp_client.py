@@ -2,7 +2,7 @@ import os
 import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
-
+from mcp_tools import convert_mcp_tools_to_openai
 import httpx
 
 from dotenv import load_dotenv
@@ -109,19 +109,14 @@ async def inspect_file_tool(session: ClientSession):
 async def main():
     async with github_mcp_session() as session:
 
-        result = await get_repository_readme(
-            session,
-            owner="Chrisbin19",
-            repo="TriageIQ"
+        tools_result = await session.list_tools()
+
+        openai_tools = convert_mcp_tools_to_openai(
+            tools_result.tools
         )
 
-        if result.is_error:
-            print("Error:", result.content)
-            return
-
-        for item in result.content:
-            if hasattr(item, "text"):
-                print(item.text)
+        for tool in openai_tools:
+            print(tool)
 
 
 if __name__ == "__main__":
