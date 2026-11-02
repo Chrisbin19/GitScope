@@ -3,6 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
 from mcp_tools import convert_mcp_tools_to_openai
+from mcp_executor import execute_mcp_tool
 import httpx
 
 from dotenv import load_dotenv
@@ -107,17 +108,19 @@ async def inspect_file_tool(session: ClientSession):
 
 
 async def main():
-    async with github_mcp_session() as session:
+     async with github_mcp_session() as session:
 
-        tools_result = await session.list_tools()
-
-        openai_tools = convert_mcp_tools_to_openai(
-            tools_result.tools
+        result = await execute_mcp_tool(
+            session=session,
+            tool_name="search_repositories",
+            arguments={
+                "query": "user:Chrisbin19",
+                "perPage": 5,
+                "minimal_output": True
+            }
         )
 
-        for tool in openai_tools:
-            print(tool)
-
+        print(result)
 
 if __name__ == "__main__":
     asyncio.run(main())
