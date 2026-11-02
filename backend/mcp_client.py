@@ -44,35 +44,81 @@ async def github_mcp_session() -> AsyncIterator[ClientSession]:
                 yield session
 
 
-async def get_user_repositories(session: ClientSession, username: str):
 
+async def get_user_repositories(
+    session: ClientSession,
+    username: str
+):
+    result = await session.call_tool(
+        name="search_repositories",
+        arguments={
+            "query": f"user:{username}",
+            "perPage": 100,
+            "page": 1,
+            "sort": "updated",
+            "order": "desc",
+            "minimal_output": False
+        }
+    )
+
+    if result.is_error:
+        raise RuntimeError(f"GitHub MCP error: {result.content}")
+
+    return result
+
+
+async def get_repository_readme(
+    session: ClientSession,
+    owner: str,
+    repo: str
+):
+    result = await session.call_tool(
+        name="get_file_contents",
+        arguments={
+            "owner": owner,
+            "repo": repo,
+            "path": "README.md"
+        }
+    )
+
+    if result.is_error:
+        raise RuntimeError(
+            f"GitHub MCP error: {result.content}"
+        )
+
+    return result
+
+
+async def inspect_file_tool(session: ClientSession):
     tools_result = await session.list_tools()
 
-    search_tool = next(
+    file_tool = next(
         (tool for tool in tools_result.tools
-         if tool.name == "search_repositories"),
+         if tool.name == "get_file_contents"),
         None
     )
 
-    if search_tool is None:
-        raise RuntimeError("search_repositories tool not available")
+    if file_tool is None:
+        raise RuntimeError("get_file_contents not available")
 
-    print("\nSearch repositories schema:")
-    print(search_tool.input_schema)
+    print("\nget_file_contents schema:")
+    print(file_tool.input_schema)
 
-    # We'll add the actual tool invocation
-    # after verifying the required arguments.
 
 async def main():
     async with github_mcp_session() as session:
 
-        username = input("Enter GitHub username: ").strip()
+        result = await get_repository_readme(
+            session,
+            owner="Chrisbin19",
+            repo="TriageIQ"
+        )
 
-        if not username:
-            print("Username cannot be empty")
-            return
+        for item in result.content:
+            if hasattr(item, "text"):
+                print(item.text)
 
-        await get_user_repositories(session, username)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
