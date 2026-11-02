@@ -105,6 +105,7 @@ async def inspect_file_tool(session: ClientSession):
     print(file_tool.input_schema)
 
 
+
 async def main():
     async with github_mcp_session() as session:
 
@@ -114,10 +115,13 @@ async def main():
             repo="TriageIQ"
         )
 
+        if result.is_error:
+            print("Error:", result.content)
+            return
+
         for item in result.content:
             if hasattr(item, "text"):
                 print(item.text)
-
 
 
 if __name__ == "__main__":
