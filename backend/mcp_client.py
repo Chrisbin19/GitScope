@@ -44,18 +44,35 @@ async def github_mcp_session() -> AsyncIterator[ClientSession]:
                 yield session
 
 
+async def get_user_repositories(session: ClientSession, username: str):
+
+    tools_result = await session.list_tools()
+
+    search_tool = next(
+        (tool for tool in tools_result.tools
+         if tool.name == "search_repositories"),
+        None
+    )
+
+    if search_tool is None:
+        raise RuntimeError("search_repositories tool not available")
+
+    print("\nSearch repositories schema:")
+    print(search_tool.input_schema)
+
+    # We'll add the actual tool invocation
+    # after verifying the required arguments.
+
 async def main():
     async with github_mcp_session() as session:
-        print("Connected to GitHub MCP!")
 
-        result = await session.list_tools()
+        username = input("Enter GitHub username: ").strip()
 
-        print("\nAvailable tools:")
+        if not username:
+            print("Username cannot be empty")
+            return
 
-        for tool in result.tools:
-            print(f"\n{tool.name}")
-            print(tool.description)
-
+        await get_user_repositories(session, username)
 
 if __name__ == "__main__":
     asyncio.run(main())
