@@ -1,5 +1,5 @@
 import asyncio
-from llm_client import ask_llm
+from llm.llm_client import ask_llm
 
 
 async def main():

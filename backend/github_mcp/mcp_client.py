@@ -2,8 +2,8 @@ import os
 import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
-from mcp_tools import convert_mcp_tools_to_openai
-from mcp_executor import execute_mcp_tool
+from github_mcp.mcp_tools import convert_mcp_tools_to_openai
+from github_mcp.mcp_executor import execute_mcp_tool
 import httpx
 
 from dotenv import load_dotenv
