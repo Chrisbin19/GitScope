@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 
-from mcp_client import (
+from github_mcp.mcp_client import (
     github_mcp_session,
     get_repository_readme,
     get_user_repositories,
@@ -42,11 +42,17 @@ def _content_texts(result):
 
 
 def _first_json(result):
-    for text in _content_texts(result):
+    texts = _content_texts(result)
+
+    for text in texts:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            return {"content": text}
+            continue
+
+    if texts:
+        return {"content": "\n".join(texts)}
+
     return None
 
 

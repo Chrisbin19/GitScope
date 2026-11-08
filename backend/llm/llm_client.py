@@ -13,16 +13,21 @@ groq_client = AsyncOpenAI(
 MODEL = "openai/gpt-oss-120b"
 
 
-async def ask_llm(prompt: str):
+async def ask_llm(prompt: str, tools=None):
 
-    response = await groq_client.chat.completions.create(
-        model=MODEL,
-        messages=[
+    request = {
+        "model": MODEL,
+        "messages": [
             {
                 "role": "user",
                 "content": prompt
             }
         ]
-    )
+    }
+
+    if tools:
+        request["tools"] = tools
+
+    response = await groq_client.chat.completions.create(**request)
 
     return response
