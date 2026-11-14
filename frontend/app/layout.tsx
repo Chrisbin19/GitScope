@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Manrope, Sora } from "next/font/google";
+import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -44,7 +46,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${manrope.variable} ${sora.variable} ${jetBrainsMono.variable}`}
     >
-      <body className="min-h-dvh">{children}</body>
+      <body className="flex min-h-dvh flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent-foreground"
+        >
+          Skip to content
+        </a>
+        <Navbar />
+        <main id="main-content" tabIndex={-1} className="flex-1">
+          {children}
+        </main>
+        <Footer />
+      </body>
     </html>
   );
 }

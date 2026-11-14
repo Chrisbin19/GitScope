@@ -28,7 +28,7 @@ export function SectionHeading({
     <div
       className={`flex max-w-3xl flex-col items-start gap-3 text-left ${className ?? ""}`}
     >
-      <p className="font-mono text-xs font-medium uppercase tracking-[0.24em] text-primary">
+      <p className="font-mono text-xs font-medium uppercase tracking-[0.24em] text-subtle">
         {eyebrow}
       </p>
       <Heading className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
