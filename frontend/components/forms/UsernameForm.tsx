@@ -68,7 +68,7 @@ export function UsernameForm({ onSubmit }: UsernameFormProps) {
             spellCheck={false}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : undefined}
-            className="h-11 w-full rounded-md border border-border bg-surface px-3.5 font-mono text-sm text-foreground placeholder:text-subtle focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="h-11 w-full rounded-md border border-control-border bg-surface px-3.5 font-mono text-sm text-foreground placeholder:text-subtle focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           />
         </div>
         <Button type="submit" className="h-11 w-full sm:w-auto">

@@ -10,6 +10,7 @@
   --subtle: #738983;
   --border: #1c2b2e;
   --border-strong: #2a4145;
+  --control-border: #566b68;
   --accent: #0f766e;
   --accent-foreground: #f8fafc;
   --danger: #ef4444;
@@ -28,6 +29,7 @@
   --color-subtle: var(--subtle);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-control-border: var(--control-border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
