@@ -1,84 +1,86 @@
-import json
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+import logging
 
-from github_mcp.mcp_client import (
-    github_mcp_session,
-    get_repository_readme,
-    get_user_repositories,
+from github_mcp.mcp_client import github_mcp_session
+from github_mcp.mcp_tools import convert_mcp_tools_to_openai
+from llm.agent import run_agent
+
+
+logging.basicConfig(level=logging.INFO)
+
+app = FastAPI(
+    title="GitScope API",
+    description="AI-powered GitHub developer analysis",
+    version="1.0.0"
 )
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with github_mcp_session() as session:
-        app.state.mcp = session
-        yield
+# Request body schema
+class AnalyzeRequest(BaseModel):
+    username: str = Field(
+        min_length=1,
+        max_length=39,
+        pattern=r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"
+    )
 
-
-app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
-def fun():
-    return {"message": "Hello, World!"}
-
-@app.get("/fun")
-def fun(text: str):
-    return {"message": f"Hello, {text}!"}
-
-@app.get("/mcp/tools")
-async def mcp_tools():
-    result = await app.state.mcp.list_tools()
-    return [{"name": t.name, "description": t.description} for t in result.tools]
+async def root():
+    return {"message": "Welcome to GitScope API"}
 
 
-def _content_texts(result):
-    return [
-        item.text
-        for item in result.content
-        if getattr(item, "text", None)
-    ]
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 
-def _first_json(result):
-    texts = _content_texts(result)
+# GitHub profile analysis endpoint
+@app.post("/analyze")
+async def analyze_github_profile(request: AnalyzeRequest):
 
-    for text in texts:
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            continue
+    username = request.username
 
-    if texts:
-        return {"content": "\n".join(texts)}
+    user_query = (
+        f"Analyze the GitHub profile of {username}. "
+        "Find their repositories and identify their "
+        "main technical areas of expertise. "
+        "Provide evidence based on the available repository information."
+    )
 
-    return None
-
-
-@app.get("/users/{username}/repositories")
-async def user_repositories(username: str):
     try:
-        result = await get_user_repositories(
-            app.state.mcp, username
+        # Open GitHub MCP connection
+        async with github_mcp_session() as session:
+
+            # Discover available MCP tools
+            tools_result = await session.list_tools()
+
+            # Convert MCP tools to Groq-compatible tools
+            openai_tools = convert_mcp_tools_to_openai(
+                tools_result.tools
+            )
+
+            # Execute the ReAct agent
+            report = await run_agent(
+                session=session,
+                user_query=user_query,
+                openai_tools=openai_tools
+            )
+
+        return {
+            "success": True,
+            "username": username,
+            "report": report
+        }
+
+    except Exception:
+        logging.exception(
+            "GitHub analysis failed for username: %s",
+            username
         )
-    except RuntimeError as exc:
-        raise HTTPException(status_code=502, detail=str(exc))
 
-    return _first_json(result)
-
-
-@app.get("/repos/{owner}/{repo}/readme")
-async def repo_readme(owner: str, repo: str):
-    try:
-        result = await get_repository_readme(
-            app.state.mcp, owner, repo
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to analyze GitHub profile."
         )
-    except RuntimeError as exc:
-        raise HTTPException(status_code=502, detail=str(exc))
-
-    return {
-        "owner": owner,
-        "repo": repo,
-        "readme": "\n".join(_content_texts(result)),
-    }
