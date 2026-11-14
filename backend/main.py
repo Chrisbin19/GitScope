@@ -7,6 +7,7 @@ from github_mcp.mcp_client import github_mcp_session
 from github_mcp.mcp_tools import convert_mcp_tools_to_openai
 from llm.agent import run_agent
 
+from fastapi.middleware.cors import CORSMiddleware
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,6 +17,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Request body schema
 class AnalyzeRequest(BaseModel):
