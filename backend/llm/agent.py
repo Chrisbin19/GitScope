@@ -95,3 +95,58 @@ async def execute_and_return_results(session, assistant_message):
         })
 
     return tool_results
+
+
+
+# STEP 4: Send updated messages back to Groq
+async def get_llm_response(messages, openai_tools):
+
+    response = await groq_client.chat.completions.create(
+        model=MODEL,
+        messages=messages,
+        tools=openai_tools,
+        tool_choice="auto"
+    )
+
+    return response.choices[0].message
+
+
+# STEP 5: Complete ReAct agent loop
+async def run_agent(session, user_query, openai_tools):
+
+    messages = [
+        {
+            "role": "user",
+            "content": user_query
+        }
+    ]
+
+    max_iterations = 8
+
+    for iteration in range(max_iterations):
+
+        print(f"\nAgent iteration: {iteration + 1}")
+
+        # Ask Groq what to do next
+        assistant_message = await get_llm_response(
+            messages,
+            openai_tools
+        )
+
+        # If no tool is requested, the agent has its final answer
+        if not assistant_message.tool_calls:
+
+            print("\nAgent completed its task.")
+
+            return assistant_message.content
+
+        # Execute requested tools and collect their observations
+        tool_results = await execute_and_return_results(
+            session,
+            assistant_message
+        )
+
+        # Add assistant tool calls and tool results to conversation
+        messages.extend(tool_results)
+
+    return "Maximum agent iterations reached."
