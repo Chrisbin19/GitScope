@@ -1,6 +1,6 @@
 import type { Feature, NavLink, Step } from "@/types";
 
-export const GITHUB_REPO_URL = "https://github.com/your-username/gitscope";
+export const GITHUB_REPO_URL = "https://github.com/Chrisbin19/GitScope";
 
 export const NAV_LINKS: readonly NavLink[] = [
   { label: "Home", href: "#home" },
